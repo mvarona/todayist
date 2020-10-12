@@ -10,13 +10,13 @@ function getRandomColor() {
 }
 
 function containsObject(obj, list) {
-    var i;
-    for (i = 0; i < list.length; i++) {
-        if (list[i] === obj) {
-            return true;
-        }
-    }
-    return false;
+	var i;
+	for (i = 0; i < list.length; i++) {
+		if (list[i] === obj) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function generateColors(limit){
@@ -62,42 +62,112 @@ function generateData(){
 	return graphData;
 }
 
+function getRandomColorSimilarTo(color) {
+	var p = 1; // To manage # in color
+	var temp;
+	var	random = Math.random();
+	var result = '#';
+
+	while (p < color.length) {
+		// We displace each color component with a random value:
+		temp = parseInt(color.slice(p, p += 2), 16)
+		// We se random^2 to maximaze the distance between previous colors:
+		temp += Math.floor((255 - temp) * random);
+		result += temp.toString(16).padStart(2, '0');
+	}
+	return result;
+}
+
+function getColors(projects, tasks){
+	var colors = [];
+	var todoistColors = {
+		"30": "#b8256f",
+		"31": "#db4035",
+		"32": "#ff9933",
+		"33": "#fad000",
+		"34": "#afb83b",
+		"35": "#7ecc49",
+		"36": "#299438",
+		"37": "#6accbc",
+		"38": "#158fad",
+		"39": "#14aaf5",
+		"40": "#96c3eb",
+		"41": "#4073ff",
+		"42": "#884dff",
+		"43": "#af38eb",
+		"44": "#eb96eb",
+		"45": "#e05194",
+		"46": "#ff8d85",
+		"47": "#808080",
+		"48": "#b8b8b8",
+		"49": "#ccac93"
+	}
+
+	for (var i = 0; i < projects.length; i++){
+		var projectColor = todoistColors[projects[i]["color"]];
+		var projectID = projects[i]["id"];
+		for (var j = 0; j < tasks.length; j++){
+			
+			if (tasks[j]["project_id"] == projectID){
+				do {
+					var newColor = getRandomColorSimilarTo(projectColor);
+					colors.push(newColor);
+					tasks[j]["color"] = newColor;
+				} while (!containsObject(newColor, colors));
+			}
+		}
+	}
+
+	return tasks;
+
+}
+
 function getData(token){
 
 	var data = [];
 
-	/*
-
 	var projectsPromise = getProjects(token);
 
-	projectsPromise.then(function(data) {
-		data["projects"] = data["projects"];
+	projectsPromise.then(function(result) {
+		data["projects"] = result["projects"];
 		console.log("PROJECTS");
 		console.log(data["projects"]);
 
-	}).catch(function(data) {
-		swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
-	});
+		var todayTasksPromise = getTasks(token);
 
-	*/
+		todayTasksPromise.then(function(result) {
+			data["tasks"] = [];
 
-	var todayTasksPromise = getTasks(token);
+			var today = new Date();
+			var dd = String(today.getDate()).padStart(2, '0');
+			var mm = String(today.getMonth() + 1).padStart(2, '0');
+			var yyyy = today.getFullYear();
+			today = yyyy + "-" + mm + "-" + dd;
 
-	todayTasksPromise.then(function(data) {
-		data["tasks"] = [];
-
-		for (var i = 0; i < data["items"].length; i++){
-			if (data["items"][i]["due"] != null && data["items"][i]["due"]["date"].includes("2020-10-11")){
-				data["tasks"].push(data["items"][i]);
+			for (var i = 0; i < result["items"].length; i++){
+				if (result["items"][i]["due"] != null && result["items"][i]["due"]["date"].includes(today)){
+					data["tasks"].push(result["items"][i]);
+				}
 			}
-		}
 
-		console.log("TASKS");
-		console.log(data["tasks"]);
-			
+			console.log("TASKS");
+			console.log(data["tasks"]);
+
+			data["tasks"] = getColors(data["projects"], data["tasks"]);
+
+			console.log("NEW TASKS");
+			console.log(data["tasks"]);
+
+				
+		}).catch(function(data) {
+			swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
+		});
+
 	}).catch(function(data) {
 		swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
 	});
+
+	
 }
 
 function getProjects(token){
@@ -105,9 +175,9 @@ function getProjects(token){
 	  dataType: 'json',
 	  url: 'https://api.todoist.com/sync/v8/sync',
 	  data: {
-	  	'token': token,
-	  	'sync_token': '*',
-	    'resource_types': '["projects"]'
+		'token': token,
+		'sync_token': '*',
+		'resource_types': '["projects"]'
 	  }
 	});
 }
@@ -117,9 +187,9 @@ function getTasks(token){
 	  dataType: 'json',
 	  url: 'https://api.todoist.com/sync/v8/sync',
 	  data: {
-	  	'token': token,
-	  	'sync_token': '*',
-	    'resource_types': '["items"]'
+		'token': token,
+		'sync_token': '*',
+		'resource_types': '["items"]'
 	  }
 	});
 }
