@@ -233,9 +233,18 @@ function calculateBeginTime(dueDate, durationInMinutes){
 	var taskBegin = new Date("01/01/2020 " + dueDate);
     taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
 	var taskBeginHour = taskBegin.getHours();
+	if (taskBeginHour < 10){
+		taskBeginHour = "0" + taskBeginHour.toString();
+	}
 	var taskBeginMinutes = taskBegin.getMinutes();
+	if (taskBeginMinutes < 10){
+		taskBeginMinutes = "0" + taskBeginMinutes.toString();
+	}
 	var taskBeginSeconds = taskBegin.getSeconds();
-	var taskBeginTime = taskBeginHour + ":" + taskBeginMinutes + ":" + taskBeginSeconds);
+	if (taskBeginSeconds < 10){
+		taskBeginSeconds = "0" + taskBeginSeconds.toString();
+	}
+	var taskBeginTime = taskBeginHour + ":" + taskBeginMinutes + ":" + taskBeginSeconds;
     
 	return taskBeginTime;
 }
@@ -262,24 +271,17 @@ function setTasksDurations(sortedTasks){
 
 }
 
-function calculateTimeDifference(dueDate, durationInMinutes, referenceTime){
+function calculateTimeDifference(beginTime, referenceTime){
 
-	// Returns time in minutes between the beginning date of a task (dueDate - durationInMinutes),
-	// and the prior task (referenceTime)
+	// Returns time in minutes between the beginning date of a task, and the prior task (referenceTime)
 
 	var MINS_PER_HOUR = 60;
 	var SECS_PER_MINUTE = 60;
 	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
 	
-	var firstTaskBegin = new Date("01/01/2020 " + dueDate);
-    firstTaskBegin = new Date(firstTaskBegin - durationInMinutes * MS_PER_MINUTE);
-	var firstTaskBeginHour = firstTaskBegin.getHours();
-	var firstTaskBeginMinutes = firstTaskBegin.getMinutes();
-	var firstTaskBeginSeconds = firstTaskBegin.getSeconds();
-	var firstTaskBeginDate = new Date("01/01/2020 " + firstTaskBeginHour + ":" + firstTaskBeginMinutes + ":" + firstTaskBeginSeconds);
-
+	var taskBeginDate = new Date("01/01/2020 " + beginTime);
     var referenceDate = new Date("01/01/2020 " + referenceTime);
-    var timeDifference = (firstTaskBeginDate - new Date(referenceDate)) / MS_PER_MINUTE;
+    var timeDifference = (taskBeginDate - new Date(referenceDate)) / MS_PER_MINUTE;
     
 	return timeDifference;
 }
@@ -309,7 +311,7 @@ function generateGraphSegments(sortedTasks){
 			if (i == 0){
 				// First task:
 
-				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_due_time"], sortedPlannedTasks[i]["todayist_duration"], "00:00:00");
+				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_begin_time"], "00:00:00");
 				
 				if (taskDuration > 0){
 					taskName = "Free";
@@ -340,7 +342,7 @@ function generateGraphSegments(sortedTasks){
 			} else {
 				// All except first and last tasks:
 
-				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_due_time"], sortedPlannedTasks[i]["todayist_duration"], sortedPlannedTasks[i - 1]["todayist_due_time"]);
+				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_begin_time"], sortedPlannedTasks[i - 1]["todayist_due_time"]);
 				
 				if (taskDuration > 0){
 					taskName = "Free";
@@ -372,7 +374,7 @@ function generateGraphSegments(sortedTasks){
 
 		} else {
 			// Last task:
-			taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_due_time"], sortedPlannedTasks[i]["todayist_duration"], "23:59:59");
+			taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_begin_time"], "23:59:59");
 				
 			if (taskDuration > 0){
 				taskName = "Free";
@@ -521,6 +523,8 @@ function getData(token){
 
 	var sortedTasks = [{"content":"Clase Legales TA1","due":{"date":"2020-10-12T16:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 16","timezone":null},"id":4220572517,"project_id":664695256,"todayist_color":"#ffe0c2","todayist_due_time":"16:00:00","todayist_duration":300},{"content":"Teóricas Gestión","due":{"date":"2020-10-12T18:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 18","timezone":null},"id":4220572528,"project_id":664695256,"todayist_color":"#ffc68e","todayist_due_time":"18:00:00","todayist_duration":120},{"content":"Merendar","due":{"date":"2020-10-12T19:00:00","is_recurring":true,"lang":"es","string":"todos días a las 19:00","timezone":null},"id":4076720689,"project_id":664695029,"todayist_color":"#6dcdbd","todayist_due_time":"19:00:00","todayist_duration":60},{"content":"30 minutos pesas","due":{"date":"2020-10-12T19:30:00","is_recurring":true,"lang":"es","string":"todos lunes, miércoles, viernes, domingos 19:30","timezone":null},"id":2799442432,"project_id":664695029,"todayist_color":"#f1faf8","todayist_due_time":"19:30:00","todayist_duration":30},{"content":"Dedicar 2 horas a ejercicio","due":{"date":"2020-10-12T20:00:00","is_recurring":true,"lang":"es","string":"todos domingos 20:00","timezone":null},"id":2799356737,"project_id":664695029,"todayist_color":"#7fd3c5","todayist_due_time":"20:00:00","todayist_duration":30},{"content":"Loguear hábitos","due":{"date":"2020-10-12T23:59:00","is_recurring":true,"lang":"es","string":"todos días 23:59","timezone":null},"id":4035761332,"project_id":664695029,"todayist_color":"#77d0c2","todayist_due_time":"23:59:00","todayist_duration":239},{"content":"Intentar tener mejor postura","due":{"date":"2020-10-12","is_recurring":true,"lang":"es","string":"todos dias","timezone":null},"id":4134069418,"project_id":664695029,"todayist_color":"#caede7","todayist_due_time":null,"todayist_duration":0}];
 
+	console.log("SORTED TASKS WITH DURATION");
+	sortedTasks = setTasksDurations(sortedTasks);
 	console.log(sortedTasks);
 
 	var graphData = [];
