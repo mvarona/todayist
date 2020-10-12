@@ -31,10 +31,25 @@ function generateColors(limit){
 	return colors;
 }
 
-function generateGraph(graphID, graphData){
+function generateGraph(graphID, data){
 	var donutOptions = {
 	  cutoutPercentage: 85, 
 	  legend: {position:'bottom', padding:5, labels: {pointStyle:'circle', usePointStyle:true}}
+	};
+
+	if (data["taskNames"].length == 0){
+		data["taskNames"].push("Free");
+		data["taskColors"].push("#eeeeee");
+		data["taskDurations"].push(720);
+	}
+
+	var graphData = {
+		labels: data["taskNames"],
+		datasets: [{
+			backgroundColor: data["taskColors"],
+			borderWidth: 0,
+			data: data["taskDurations"]
+		}]
 	};
 
 	var graph = document.getElementById(graphID);
@@ -45,21 +60,6 @@ function generateGraph(graphID, graphData){
 		  options: donutOptions
 	  });
 	}	
-}
-
-function generateData(){
-	var graphData = [];
-
-	graphData["day"] = {
-		labels: ['Bootstrap', 'Popper', 'Other'],
-		datasets: [{
-			backgroundColor: generateColors(100),
-			borderWidth: 0,
-			data: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-		}]
-	};
-
-	return graphData;
 }
 
 function getRandomColorSimilarTo(color) {
@@ -191,7 +191,7 @@ function sortTasks(tasks){
 
 function calculateDuration(task, priorTask, taskIndex){
 
-	var beginDayTime = new Date('01/01/2020 11:00:00');
+	var beginDayTime = new Date('01/01/2020 00:00:00');
 	var durationMinutes = 0;
 
 	if (taskIndex == 0){
@@ -225,6 +225,21 @@ function searchDuration(taskName){
 	return result;
 }
 
+function calculateBeginTime(dueDate, durationInMinutes){
+
+	var SECS_PER_MINUTE = 60;
+	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
+	
+	var taskBegin = new Date("01/01/2020 " + dueDate);
+    taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
+	var taskBeginHour = taskBegin.getHours();
+	var taskBeginMinutes = taskBegin.getMinutes();
+	var taskBeginSeconds = taskBegin.getSeconds();
+	var taskBeginTime = taskBeginHour + ":" + taskBeginMinutes + ":" + taskBeginSeconds);
+    
+	return taskBeginTime;
+}
+
 function setTasksDurations(sortedTasks){
 
 	for (var i = 0; i < sortedTasks.length; i++){
@@ -235,8 +250,10 @@ function setTasksDurations(sortedTasks){
 			// TODO: Calculate duration
 			if (i == 0){
 				sortedTasks[i]["todayist_duration"] = calculateDuration(sortedTasks[i], null, i);
+				sortedTasks[i]["todayist_begin_time"] = calculateBeginTime(sortedTasks[i]["todayist_due_time"], sortedTasks[i]["todayist_duration"]);
 			} else {
 				sortedTasks[i]["todayist_duration"] = calculateDuration(sortedTasks[i], sortedTasks[i - 1], i);
+				sortedTasks[i]["todayist_begin_time"] = calculateBeginTime(sortedTasks[i]["todayist_due_time"], sortedTasks[i]["todayist_duration"]);
 			}
 		}
 	}
@@ -245,9 +262,211 @@ function setTasksDurations(sortedTasks){
 
 }
 
+function calculateTimeDifference(dueDate, durationInMinutes, referenceTime){
+
+	// Returns time in minutes between the beginning date of a task (dueDate - durationInMinutes),
+	// and the prior task (referenceTime)
+
+	var MINS_PER_HOUR = 60;
+	var SECS_PER_MINUTE = 60;
+	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
+	
+	var firstTaskBegin = new Date("01/01/2020 " + dueDate);
+    firstTaskBegin = new Date(firstTaskBegin - durationInMinutes * MS_PER_MINUTE);
+	var firstTaskBeginHour = firstTaskBegin.getHours();
+	var firstTaskBeginMinutes = firstTaskBegin.getMinutes();
+	var firstTaskBeginSeconds = firstTaskBegin.getSeconds();
+	var firstTaskBeginDate = new Date("01/01/2020 " + firstTaskBeginHour + ":" + firstTaskBeginMinutes + ":" + firstTaskBeginSeconds);
+
+    var referenceDate = new Date("01/01/2020 " + referenceTime);
+    var timeDifference = (firstTaskBeginDate - new Date(referenceDate)) / MS_PER_MINUTE;
+    
+	return timeDifference;
+}
+
+function generateGraphSegments(sortedTasks){
+	var taskNames = [];
+	var taskColors = [];
+	var taskDurations = [];
+	var graphData = {};
+	var beginDay = new Date("01/01/2020 00:00:00");
+	var sortedPlannedTasks = [];
+
+	for (var i = 0; i < sortedTasks.length; i++){
+		if (sortedTasks[i]["todayist_due_time"] != null && sortedTasks[i]["todayist_duration"]){
+			sortedPlannedTasks.push(sortedTasks[i]);
+		}
+	}
+
+	for (var i = 0; i < sortedPlannedTasks.length; i++){
+		var taskName = "";
+		var taskColor = "";
+		var taskDuration = 0;
+
+		if (i < sortedPlannedTasks.length - 1){
+			// All except last tasks:			
+
+			if (i == 0){
+				// First task:
+
+				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_due_time"], sortedPlannedTasks[i]["todayist_duration"], "00:00:00");
+				
+				if (taskDuration > 0){
+					taskName = "Free";
+					taskColor = "#eeeeee";
+
+					taskNames.push(taskName);
+					taskColors.push(taskColor);
+					taskDurations.push(taskDuration);
+
+					taskName = sortedPlannedTasks[i]["content"];
+					taskColor = sortedPlannedTasks[i]["todayist_color"];
+					taskDuration = sortedPlannedTasks[i]["todayist_duration"];
+
+					taskNames.push(taskName);
+					taskColors.push(taskColor);
+					taskDurations.push(taskDuration);
+
+				} else {
+					taskName = sortedPlannedTasks[i]["content"];
+					taskColor = sortedPlannedTasks[i]["todayist_color"];
+					taskDuration = sortedPlannedTasks[i]["todayist_duration"];
+
+					taskNames.push(taskName);
+					taskColors.push(taskColor);
+					taskDurations.push(taskDuration);
+				}
+
+			} else {
+				// All except first and last tasks:
+
+				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_due_time"], sortedPlannedTasks[i]["todayist_duration"], sortedPlannedTasks[i - 1]["todayist_due_time"]);
+				
+				if (taskDuration > 0){
+					taskName = "Free";
+					taskColor = "#eeeeee";
+
+					taskNames.push(taskName);
+					taskColors.push(taskColor);
+					taskDurations.push(taskDuration);
+
+					taskName = sortedPlannedTasks[i]["content"];
+					taskColor = sortedPlannedTasks[i]["todayist_color"];
+					taskDuration = sortedPlannedTasks[i]["todayist_duration"];
+
+					taskNames.push(taskName);
+					taskColors.push(taskColor);
+					taskDurations.push(taskDuration);
+
+
+				} else {
+					taskName = sortedPlannedTasks[i]["content"];
+					taskColor = sortedPlannedTasks[i]["todayist_color"];
+					taskDuration = sortedPlannedTasks[i]["todayist_duration"];
+
+					taskNames.push(taskName);
+					taskColors.push(taskColor);
+					taskDurations.push(taskDuration);
+				}
+			}
+
+		} else {
+			// Last task:
+			taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_due_time"], sortedPlannedTasks[i]["todayist_duration"], "23:59:59");
+				
+			if (taskDuration > 0){
+				taskName = "Free";
+				taskColor = "#eeeeee";
+
+				taskNames.push(taskName);
+				taskColors.push(taskColor);
+				taskDurations.push(taskDuration);
+
+				taskName = sortedPlannedTasks[i]["content"];
+				taskColor = sortedPlannedTasks[i]["todayist_color"];
+				taskDuration = sortedPlannedTasks[i]["todayist_duration"];
+
+				taskNames.push(taskName);
+				taskColors.push(taskColor);
+				taskDurations.push(taskDuration);
+
+			} else {
+				taskName = sortedPlannedTasks[i]["content"];
+				taskColor = sortedPlannedTasks[i]["todayist_color"];
+				taskDuration = sortedPlannedTasks[i]["todayist_duration"];
+
+				taskNames.push(taskName);
+				taskColors.push(taskColor);
+				taskDurations.push(taskDuration);
+			}
+		}
+	}
+	
+	graphData["taskNames"] = taskNames;
+	graphData["taskColors"] = taskColors;
+	graphData["taskDurations"] = taskDurations;
+
+	console.log("GRAPH DATA");
+	console.log(graphData);
+
+	return graphData;
+}
+
+function getDueTimeForTask(taskContent, allTasks){
+	for (var i = 0; i < allTasks.length; i++){
+		if (allTasks[i]["content"] === taskContent){
+			return allTasks[i]["todayist_due_time"];
+		}
+	}
+}
+
+function splitGraphData(data, allTasks){
+	var taskNamesDay = [];
+	var taskColorsDay = [];
+	var taskDurationsDay = [];
+	var taskNamesNight = [];
+	var taskColorsNight = [];
+	var taskDurationsNight = [];
+	var splittedGraphData = {};
+	var dayObject = {};
+	var nightObject = {};
+	var limitDayDate = new Date("01/01/2020 12:00:00");
+
+	for (var i = 0; i < data["taskNames"].length; i++){
+		var taskDueDate = new Date("01/01/2020 " + getDueTimeForTask(data["taskNames"][i], allTasks));
+		
+		if (taskDueDate <= limitDayDate){
+			taskNamesDay.push(data["taskNames"][i]);
+			taskColorsDay.push(data["taskColors"][i]);
+			taskDurationsDay.push(data["taskDurations"][i]);
+		} else {
+			taskNamesNight.push(data["taskNames"][i]);
+			taskColorsNight.push(data["taskColors"][i]);
+			taskDurationsNight.push(data["taskDurations"][i]);
+		}
+
+	}
+
+	dayObject["taskNames"] = taskNamesDay;
+	dayObject["taskColors"] = taskColorsDay;
+	dayObject["taskDurations"] = taskDurationsDay;
+
+	nightObject["taskNames"] = taskNamesNight;
+	nightObject["taskColors"] = taskColorsNight;
+	nightObject["taskDurations"] = taskDurationsNight;
+
+	splittedGraphData["day"] = dayObject;
+	splittedGraphData["night"] = nightObject;
+
+	return splittedGraphData;
+
+}
+
 function getData(token){
 
 	var data = [];
+
+/*
 
 	var projectsPromise = getProjects(token);
 
@@ -289,7 +508,6 @@ function getData(token){
 			console.log("SORTED TASKS WITH DURATION");
 			sortedTasks = setTasksDurations(sortedTasks);
 			console.log(sortedTasks);
-
 				
 		}).catch(function(data) {
 			swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
@@ -299,7 +517,23 @@ function getData(token){
 		swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
 	});
 
-	
+	*/
+
+	var sortedTasks = [{"content":"Clase Legales TA1","due":{"date":"2020-10-12T16:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 16","timezone":null},"id":4220572517,"project_id":664695256,"todayist_color":"#ffe0c2","todayist_due_time":"16:00:00","todayist_duration":300},{"content":"Teóricas Gestión","due":{"date":"2020-10-12T18:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 18","timezone":null},"id":4220572528,"project_id":664695256,"todayist_color":"#ffc68e","todayist_due_time":"18:00:00","todayist_duration":120},{"content":"Merendar","due":{"date":"2020-10-12T19:00:00","is_recurring":true,"lang":"es","string":"todos días a las 19:00","timezone":null},"id":4076720689,"project_id":664695029,"todayist_color":"#6dcdbd","todayist_due_time":"19:00:00","todayist_duration":60},{"content":"30 minutos pesas","due":{"date":"2020-10-12T19:30:00","is_recurring":true,"lang":"es","string":"todos lunes, miércoles, viernes, domingos 19:30","timezone":null},"id":2799442432,"project_id":664695029,"todayist_color":"#f1faf8","todayist_due_time":"19:30:00","todayist_duration":30},{"content":"Dedicar 2 horas a ejercicio","due":{"date":"2020-10-12T20:00:00","is_recurring":true,"lang":"es","string":"todos domingos 20:00","timezone":null},"id":2799356737,"project_id":664695029,"todayist_color":"#7fd3c5","todayist_due_time":"20:00:00","todayist_duration":30},{"content":"Loguear hábitos","due":{"date":"2020-10-12T23:59:00","is_recurring":true,"lang":"es","string":"todos días 23:59","timezone":null},"id":4035761332,"project_id":664695029,"todayist_color":"#77d0c2","todayist_due_time":"23:59:00","todayist_duration":239},{"content":"Intentar tener mejor postura","due":{"date":"2020-10-12","is_recurring":true,"lang":"es","string":"todos dias","timezone":null},"id":4134069418,"project_id":664695029,"todayist_color":"#caede7","todayist_due_time":null,"todayist_duration":0}];
+
+	console.log(sortedTasks);
+
+	var graphData = [];
+
+	graphData = generateGraphSegments(sortedTasks);
+	graphData = splitGraphData(graphData, sortedTasks);	
+
+	console.log("SPLITTED GRAPH DATA")
+	console.log(graphData);
+
+	generateGraph("graph-day", graphData["day"]);
+	generateGraph("graph-night", graphData["night"]);
+
 }
 
 function getProjects(token){
@@ -332,9 +566,9 @@ var token = "1a36056aa851fe8266a5bcd5a8a51075b8e2ce79";
 
 getData(token);
 
-var graphData = generateData();
+//var graphData = generateData();
 
-generateGraph("graph-day", graphData["day"]);
+
 
 
 
