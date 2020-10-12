@@ -229,22 +229,27 @@ function calculateBeginTime(dueDate, durationInMinutes){
 
 	var SECS_PER_MINUTE = 60;
 	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
-	
-	var taskBegin = new Date("01/01/2020 " + dueDate);
-    taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
-	var taskBeginHour = taskBegin.getHours();
-	if (taskBeginHour < 10){
-		taskBeginHour = "0" + taskBeginHour.toString();
+
+	if (dueDate != null && durationInMinutes != null){
+		var taskBegin = new Date("01/01/2020 " + dueDate);
+	    taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
+		var taskBeginHour = taskBegin.getHours();
+		if (taskBeginHour < 10){
+			taskBeginHour = "0" + taskBeginHour.toString();
+		}
+		var taskBeginMinutes = taskBegin.getMinutes();
+		if (taskBeginMinutes < 10){
+			taskBeginMinutes = "0" + taskBeginMinutes.toString();
+		}
+		var taskBeginSeconds = taskBegin.getSeconds();
+		if (taskBeginSeconds < 10){
+			taskBeginSeconds = "0" + taskBeginSeconds.toString();
+		}
+		var taskBeginTime = taskBeginHour + ":" + taskBeginMinutes + ":" + taskBeginSeconds;
+
+	} else {
+		return null;
 	}
-	var taskBeginMinutes = taskBegin.getMinutes();
-	if (taskBeginMinutes < 10){
-		taskBeginMinutes = "0" + taskBeginMinutes.toString();
-	}
-	var taskBeginSeconds = taskBegin.getSeconds();
-	if (taskBeginSeconds < 10){
-		taskBeginSeconds = "0" + taskBeginSeconds.toString();
-	}
-	var taskBeginTime = taskBeginHour + ":" + taskBeginMinutes + ":" + taskBeginSeconds;
     
 	return taskBeginTime;
 }
@@ -521,11 +526,7 @@ function getData(token){
 
 	*/
 
-	var sortedTasks = [{"content":"Clase Legales TA1","due":{"date":"2020-10-12T16:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 16","timezone":null},"id":4220572517,"project_id":664695256,"todayist_color":"#ffe0c2","todayist_due_time":"16:00:00","todayist_duration":300},{"content":"Teóricas Gestión","due":{"date":"2020-10-12T18:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 18","timezone":null},"id":4220572528,"project_id":664695256,"todayist_color":"#ffc68e","todayist_due_time":"18:00:00","todayist_duration":120},{"content":"Merendar","due":{"date":"2020-10-12T19:00:00","is_recurring":true,"lang":"es","string":"todos días a las 19:00","timezone":null},"id":4076720689,"project_id":664695029,"todayist_color":"#6dcdbd","todayist_due_time":"19:00:00","todayist_duration":60},{"content":"30 minutos pesas","due":{"date":"2020-10-12T19:30:00","is_recurring":true,"lang":"es","string":"todos lunes, miércoles, viernes, domingos 19:30","timezone":null},"id":2799442432,"project_id":664695029,"todayist_color":"#f1faf8","todayist_due_time":"19:30:00","todayist_duration":30},{"content":"Dedicar 2 horas a ejercicio","due":{"date":"2020-10-12T20:00:00","is_recurring":true,"lang":"es","string":"todos domingos 20:00","timezone":null},"id":2799356737,"project_id":664695029,"todayist_color":"#7fd3c5","todayist_due_time":"20:00:00","todayist_duration":30},{"content":"Loguear hábitos","due":{"date":"2020-10-12T23:59:00","is_recurring":true,"lang":"es","string":"todos días 23:59","timezone":null},"id":4035761332,"project_id":664695029,"todayist_color":"#77d0c2","todayist_due_time":"23:59:00","todayist_duration":239},{"content":"Intentar tener mejor postura","due":{"date":"2020-10-12","is_recurring":true,"lang":"es","string":"todos dias","timezone":null},"id":4134069418,"project_id":664695029,"todayist_color":"#caede7","todayist_due_time":null,"todayist_duration":0}];
-
-	console.log("SORTED TASKS WITH DURATION");
-	sortedTasks = setTasksDurations(sortedTasks);
-	console.log(sortedTasks);
+	var sortedTasks = [{"content":"Clase Legales TA1","due":{"date":"2020-10-12T16:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 16","timezone":null},"id":4220572517,"project_id":664695256,"todayist_color":"#ffe0c2","todayist_due_time":"16:00:00","todayist_begin_time":"11:00:00","todayist_duration":300},{"content":"Teóricas Gestión","due":{"date":"2020-10-12T18:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 18","timezone":null},"id":4220572528,"project_id":664695256,"todayist_color":"#ffc68e","todayist_due_time":"18:00:00","todayist_begin_time":"16:00:00","todayist_duration":120},{"content":"Merendar","due":{"date":"2020-10-12T19:00:00","is_recurring":true,"lang":"es","string":"todos días a las 19:00","timezone":null},"id":4076720689,"project_id":664695029,"todayist_color":"#6dcdbd","todayist_due_time":"19:00:00","todayist_begin_time":"18:00:00","todayist_duration":60},{"content":"30 minutos pesas","due":{"date":"2020-10-12T19:30:00","is_recurring":true,"lang":"es","string":"todos lunes, miércoles, viernes, domingos 19:30","timezone":null},"id":2799442432,"project_id":664695029,"todayist_color":"#f1faf8","todayist_due_time":"19:30:00","todayist_begin_time":"19:00:00","todayist_duration":30},{"content":"Dedicar 2 horas a ejercicio","due":{"date":"2020-10-12T20:00:00","is_recurring":true,"lang":"es","string":"todos domingos 20:00","timezone":null},"id":2799356737,"project_id":664695029,"todayist_color":"#7fd3c5","todayist_due_time":"20:00:00","todayist_begin_time":"19:30:00","todayist_duration":30},{"content":"Loguear hábitos","due":{"date":"2020-10-12T23:59:00","is_recurring":true,"lang":"es","string":"todos días 23:59","timezone":null},"id":4035761332,"project_id":664695029,"todayist_color":"#77d0c2","todayist_due_time":"23:59:00","todayist_begin_time":"20:00:00","todayist_duration":239},{"content":"Intentar tener mejor postura","due":{"date":"2020-10-12","is_recurring":true,"lang":"es","string":"todos dias","timezone":null},"id":4134069418,"project_id":664695029,"todayist_color":"#caede7","todayist_due_time":null,"todayist_begin_time":null,"todayist_duration":0}];
 
 	var graphData = [];
 
