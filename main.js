@@ -112,13 +112,136 @@ function getColors(projects, tasks){
 				do {
 					var newColor = getRandomColorSimilarTo(projectColor);
 					colors.push(newColor);
-					tasks[j]["color"] = newColor;
+					tasks[j]["todayist_color"] = newColor;
 				} while (!containsObject(newColor, colors));
 			}
 		}
 	}
 
 	return tasks;
+
+}
+
+function compareDueDateTasks(a, b) {
+	// Sort by due hour, nulls go to the end:
+
+	if (a["todayist_due_time"] == null && b["todayist_due_time"] != null){
+		return 1;
+	}
+	if (a["todayist_due_time"] != null && b["todayist_due_time"] == null){
+		return -1;
+	}
+	if (a["todayist_due_time"] == null && b["todayist_due_time"] == null){
+		return 0;
+	}
+
+	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) < Date.parse('01/01/2020 ' + b["todayist_due_time"])){
+		return -1;
+  	}
+  	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) > Date.parse('01/01/2020 ' + b["todayist_due_time"])){
+		return 1;
+  	}
+	return 0;
+}
+
+function searchDueHour(task){
+	var dateString = task["due"]["date"];
+	var date = new Date(dateString);
+	var time = "";
+	
+	if (dateString.includes(":")){
+		// Task is planned for a specific hour:
+
+		var hour = date.getHours();
+		if (hour < 10){
+			hour = "0" + hour.toString();
+		}
+
+		var minutes = date.getMinutes();
+		if (minutes < 10){
+			minutes = "0" + minutes.toString();
+		}
+
+		var seconds = date.getSeconds();
+		if (seconds < 10){
+			seconds = "0" + seconds.toString();
+		}
+
+		time = hour + ":" + minutes + ":" + seconds;
+
+	} else {
+		// Task is not planned for any specific hour:
+		time = null;
+	}
+    
+	return time;
+}
+
+function sortTasks(tasks){
+	var sortedTasks = [];
+
+	for (var i = 0; i < tasks.length; i++){
+		tasks[i]["todayist_due_time"] = searchDueHour(tasks[i]);
+	}
+
+	sortedTasks = tasks.sort(compareDueDateTasks);
+
+	return sortedTasks;
+}
+
+function calculateDuration(task, priorTask, taskIndex){
+
+	var beginDayTime = new Date('01/01/2020 11:00:00');
+	var durationMinutes = 0;
+
+	if (taskIndex == 0){
+		if (task["todayist_due_time"] != null){
+			var date = new Date('01/01/2020 ' + task["todayist_due_time"]);
+			var difference = Math.abs(date - beginDayTime);
+			durationMinutes = difference / 1000 / 60;
+		}
+	} else {
+		if (task["todayist_due_time"] != null){
+			var priorDate = new Date('01/01/2020 ' + priorTask["todayist_due_time"]);
+			var date = new Date('01/01/2020 ' + task["todayist_due_time"]);
+			var difference = Math.abs(date - priorDate);
+			durationMinutes = difference / 1000 / 60;
+		}
+	}
+
+	return durationMinutes
+}
+
+function searchDuration(taskName){
+	// Pattern: \number\, in case of more than one, get the last:
+	var pattern = /\\[0-9]+\\/g;
+	var result = taskName.match(pattern);
+	if (result != null){
+		if (result.length > 0){
+			result = result[result.length - 1];
+		}
+		result = result.replaceAll("\\", "");
+	}
+	return result;
+}
+
+function setTasksDurations(sortedTasks){
+
+	for (var i = 0; i < sortedTasks.length; i++){
+		durationInName = searchDuration(sortedTasks[i]["content"]);
+		if (durationInName != null){
+			sortedTasks[i]["todayist_duration"] = durationInName;
+		} else {
+			// TODO: Calculate duration
+			if (i == 0){
+				sortedTasks[i]["todayist_duration"] = calculateDuration(sortedTasks[i], null, i);
+			} else {
+				sortedTasks[i]["todayist_duration"] = calculateDuration(sortedTasks[i], sortedTasks[i - 1], i);
+			}
+		}
+	}
+
+	return sortedTasks;
 
 }
 
@@ -155,8 +278,17 @@ function getData(token){
 
 			data["tasks"] = getColors(data["projects"], data["tasks"]);
 
-			console.log("NEW TASKS");
+			console.log("TASKS WITH COLOR");
 			console.log(data["tasks"]);
+
+			sortedTasks = sortTasks(data["tasks"]);
+
+			console.log("SORTED TASKS");
+			console.log(sortedTasks);
+
+			console.log("SORTED TASKS WITH DURATION");
+			sortedTasks = setTasksDurations(sortedTasks);
+			console.log(sortedTasks);
 
 				
 		}).catch(function(data) {
