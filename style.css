@@ -1,0 +1,38 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+.card.clock {
+	background-image: url("clock.png");
+	background-position: 50% 3rem;
+	background-size: 23rem;
+	background-repeat: no-repeat;
+	height: 40rem;
+}
+
+.chart-container {
+	position: relative;
+	margin: auto;
+	height: 28rem;
+	width: 28rem;
+}
+
+.chart-legend {
+	height: auto;
+	overflow: auto;
+	margin-top: 2rem;
+}
+
+.chart-legend li {
+	list-style-type: none;
+	display: inline;
+	margin-left: 15px;
+}
+
+.chart-legend li span {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+}

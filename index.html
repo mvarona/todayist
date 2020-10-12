@@ -10,24 +10,35 @@
     <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha512-s+xg36jbIujB2S2VKfpGmlC3T5V2TF3lY48DX7u2r9XzGzgPsa6wTpOQA7J9iffvdeBN0q9tKzRxVxw1JviZPg==" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>    
-        <h1>Todayist</h1>
-        <h2>A natural 12-hours-clock to visualize all your today tasks from Todoist!</h2>
-    </header>
-    <div class="row py-2">
-        <div class="col-md-4 py-1">
-            <div class="card">
+   <div class="row mx-auto mt-3">
+        <div class="col-12">
+            <header>    
+            <h1 class="text-center">Todayist</h1>
+            <h2 class="text-center">A natural 12-hours-clock to visualize all your today tasks from Todoist!</h2>
+            </header>
+        </div>
+    </div>
+    <div class="row w-100 mt-5">
+        <div class="col-md-5 mx-auto">
+            <div class="card clock">
                 <div class="card-body">
-                    <canvas id="graph-day"></canvas>
+                    <div class="chart-container">
+                        <canvas id="graph-day"></canvas>
+                    </div>
+                    <div id="graph-day-leyend" class="chart-legend"></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 py-1">
-            <div class="card">
+        <div class="col-md-5 mx-auto">
+            <div class="card clock">
                 <div class="card-body">
-                    <canvas id="graph-night"></canvas>
+                    <div class="chart-container">
+                        <canvas id="graph-night"></canvas>
+                    </div>
+                    <div id="graph-night-leyend" class="chart-legend"></div>
                 </div>
             </div>
         </div>

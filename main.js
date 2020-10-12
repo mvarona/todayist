@@ -34,8 +34,22 @@ function generateColors(limit){
 function generateGraph(graphID, data){
 	var donutOptions = {
 	  cutoutPercentage: 85, 
-	  legend: {position:'bottom', padding:5, labels: {pointStyle:'circle', usePointStyle:true}}
+	  legend:{ display:false },
+	  maintainAspectRatio: false,
+      responsive: true
 	};
+
+	var sumDurations = 0;
+
+	for (var i = 0; i < data["taskDurations"].length; i++){
+		sumDurations += data["taskDurations"];
+	}
+
+	if (sumDurations < 720){
+		data["taskNames"].unshift("Free");
+		data["taskColors"].unshift("#eeeeee");
+		data["taskDurations"].unshift(720 - sumDurations);
+	}
 
 	if (data["taskNames"].length == 0){
 		data["taskNames"].push("Free");
@@ -54,11 +68,12 @@ function generateGraph(graphID, data){
 
 	var graph = document.getElementById(graphID);
 	if (graph) {
-	  new Chart(graph, {
+	  var graphObject = new Chart(graph, {
 		  type: 'pie',
 		  data: graphData,
 		  options: donutOptions
 	  });
+	  document.getElementById(graphID + '-leyend').innerHTML = graphObject.generateLegend();
 	}	
 }
 
@@ -279,14 +294,15 @@ function setTasksDurations(sortedTasks){
 function calculateTimeDifference(beginTime, referenceTime){
 
 	// Returns time in minutes between the beginning date of a task, and the prior task (referenceTime)
-
-	var MINS_PER_HOUR = 60;
 	var SECS_PER_MINUTE = 60;
 	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
+
+	var MINS_PER_HOUR = 60;
+	(taskBeginDate - referenceDate) / MS_PER_MINUTE;
 	
 	var taskBeginDate = new Date("01/01/2020 " + beginTime);
     var referenceDate = new Date("01/01/2020 " + referenceTime);
-    var timeDifference = (taskBeginDate - new Date(referenceDate)) / MS_PER_MINUTE;
+    var timeDifference = (taskBeginDate - referenceDate) / MS_PER_MINUTE;
     
 	return timeDifference;
 }
@@ -427,6 +443,14 @@ function getDueTimeForTask(taskContent, allTasks){
 	}
 }
 
+function getBeginTimeForTask(taskContent, allTasks){
+	for (var i = 0; i < allTasks.length; i++){
+		if (allTasks[i]["content"] === taskContent){
+			return allTasks[i]["todayist_begin_time"];
+		}
+	}
+}
+
 function splitGraphData(data, allTasks){
 	var taskNamesDay = [];
 	var taskColorsDay = [];
@@ -438,18 +462,37 @@ function splitGraphData(data, allTasks){
 	var dayObject = {};
 	var nightObject = {};
 	var limitDayDate = new Date("01/01/2020 12:00:00");
+	var SECS_PER_MINUTE = 60;
+	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
 
 	for (var i = 0; i < data["taskNames"].length; i++){
 		var taskDueDate = new Date("01/01/2020 " + getDueTimeForTask(data["taskNames"][i], allTasks));
+		var taskBeginDate = new Date("01/01/2020 " + getBeginTimeForTask(data["taskNames"][i], allTasks));
 		
-		if (taskDueDate <= limitDayDate){
+		if (taskBeginDate < limitDayDate && taskDueDate <= limitDayDate){
+			// Task is during day:
 			taskNamesDay.push(data["taskNames"][i]);
 			taskColorsDay.push(data["taskColors"][i]);
 			taskDurationsDay.push(data["taskDurations"][i]);
-		} else {
+
+		} else if (taskBeginDate >= limitDayDate){
+			// Task is during night:
 			taskNamesNight.push(data["taskNames"][i]);
 			taskColorsNight.push(data["taskColors"][i]);
 			taskDurationsNight.push(data["taskDurations"][i]);
+		
+		} else if (taskBeginDate < limitDayDate && taskDueDate > limitDayDate){
+			// Task starts during day and ends during night (split task):
+
+			var minutesDay = (limitDayDate - taskBeginDate) / MS_PER_MINUTE;
+			
+			taskNamesDay.push(data["taskNames"][i]);
+			taskColorsDay.push(data["taskColors"][i]);
+			taskDurationsDay.push(minutesDay);
+
+			taskNamesNight.push(data["taskNames"][i]);
+			taskColorsNight.push(data["taskColors"][i]);
+			taskDurationsNight.push(data["taskDurations"][i] - minutesDay);
 		}
 
 	}
