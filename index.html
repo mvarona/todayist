@@ -17,13 +17,21 @@
 	<script src="https://kit.fontawesome.com/d439a7c845.js" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
 	<script src="bootstrap-material-datetimepicker.js"></script>
+	<script src="jquery.cookie.js"></script>
 </head>
 <body>
 	<div id="background"></div>
 	<div class="row mx-auto pt-3 pb-2 page-header bg-dark">
 		<div class="col-12">
 			<header>    
-			<h1 class="text-center">Todayist</h1>
+			<div class="row">
+				<div class="col-md-11">
+					<h1 class="text-center">Todayist</h1>
+				</div>
+				<div class="col-md-1">
+					<a id="settings" href="#" class="text-center mx-auto">Settings <i class="fas fa-cog"></i></a>
+				</div>
+			</div>
 			<h2 class="text-center">A natural 12-hours-clock to visualize all your today tasks from Todoist!</h2>
 			</header>
 		</div>
@@ -88,39 +96,29 @@
 		  </div>
 		  <div class="modal-footer">
 			<button id="close-modal-setup" type="button" class="btn btn-secondary mr-4" data-dismiss="modal">Close</button>
-			<button type="button" class="btn btn-primary">Save changes</button>
+			<button id="save-settings" type="button" class="btn btn-primary">Save changes</button>
 		  </div>
 		</div>
 	  </div>
 	</div>
 	<footer class="page-footer font-small bg-dark">
 		<div class="container">
-			<div class="row col-md-12">
+			<div class="row col-md-12 social-media">
 				<div class="col-md-12 mx-auto pt-4">
-					<div class="col-md-1 mr-md-1 mr-1 d-inline-block mx-auto"></div>
-					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
-						<a class="fb-ic ic">
+					<div class="col-md-2 mr-md-2 mr-3 d-inline-block mx-auto"></div>
+					<div class="col-md-3 mr-md-3 mr-2 d-inline-block mx-auto">
+						<a href="https://www.facebook.com/sharer.php?u=https://todayist.github.io" target="_blank" class="fb-ic ic">
 							<i class="fab fa-facebook-f fa-lg white-text fa-2x"> </i>
 						</a>
 					</div>
-					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
-						<a class="tw-ic ic">
+					<div class="col-md-3 mr-md-3 mr-2 d-inline-block mx-auto">
+						<a href="http://twitter.com/share?text=Visualize%20your%20day%20from%20Todoist%20as%20never%20before!%20-%20Todayist&url=https://todayist.github.io" target="_blank" class="tw-ic ic">
 							<i class="fab fa-twitter fa-lg white-text fa-2x"> </i>
 						</a>
 					</div>
-					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
-						<a class="li-ic ic">
+					<div class="col-md-3 mr-md-3 mr-2 d-inline-block mx-auto">
+						<a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Ftodayist.github.io%2F&title=Todayist&summary=Visualize%20your%20day%20from%20Todoist%20as%20never%20before!%20-%20Todayist.&source=Todayist" target="_blank" class="li-ic ic">
 							<i class="fab fa-linkedin-in fa-lg white-text fa-2x"> </i>
-						</a>
-					</div>
-					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
-						<a class="ins-ic ic">
-							<i class="fab fa-instagram fa-lg white-text fa-2x"> </i>
-						</a>
-					</div>
-					<div class="col-md-2 d-inline-block mx-auto">
-						<a class="pin-ic ic">
-							<i class="fab fa-pinterest fa-lg white-text fa-2x"> </i>
 						</a>
 					</div>				  
 				</div>
@@ -129,7 +127,7 @@
 		<div class="footer-copyright text-center py-3">
 			<span>Sky photos by @jcomp - <a href="https://www.freepik.es/fotos/jcomp" target="_blank">www.freepik.es</a><br/>
 			<span>© 2020 All rights reserved - Coded by <a target="_blank" href="https://github.com/mvarona">Mario Varona</a></span><br/>
-			<span>None Todoist data is sent, check our <a target="_blank" href="TODO:LINK">Privacy Policy</a> - <a href="#">Delete cookies</a></span><br/>
+			<span>None Todoist data is sent, check our <a target="_blank" href="https://www.privacypolicygenerator.info/live.php?token=LZyZrr9vrcyW4XsJ5sydK5UrVjpnQSU4">Privacy Policy</a> - <a id="delete-cookies" href="#">Delete cookies</a></span><br/>
 			<span>Not created by, affiliated with, or supported by Doist, the team behind the best productivity app, Todoist.</span>
 		</div>
 	</footer>

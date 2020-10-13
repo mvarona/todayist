@@ -1,3 +1,13 @@
+// ** GLOBALS: ** //
+
+var Todayist = {}; // Namespace for variables and default values
+
+Todayist.cookieName = "todayist_cookie";
+Todayist.noCookiesToCleanString = "There aren't cookies to clean, reload the page to create them again";
+Todayist.confirmCookieCleaningString = "Are you sure that you want to delete the cookies only for this page? That will restore all your data, and you will have to add the Todoist API token again. This action cannot be undone";
+Todayist.cookiesDeletedString = "Cookies successfully deleted";
+Todayist.missingSettings = "Some fields are missing";
+
 // ** FUNCTIONS: ** //
 
 function getRandomColor() {
@@ -36,7 +46,7 @@ function generateGraph(graphID, data){
 	  cutoutPercentage: 85, 
 	  legend:{ display:false },
 	  maintainAspectRatio: false,
-      responsive: true
+	  responsive: true
 	};
 
 	var sumDurations = 0;
@@ -152,10 +162,10 @@ function compareDueDateTasks(a, b) {
 
 	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) < Date.parse('01/01/2020 ' + b["todayist_due_time"])){
 		return -1;
-  	}
-  	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) > Date.parse('01/01/2020 ' + b["todayist_due_time"])){
+	}
+	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) > Date.parse('01/01/2020 ' + b["todayist_due_time"])){
 		return 1;
-  	}
+	}
 	return 0;
 }
 
@@ -188,7 +198,7 @@ function searchDueHour(task){
 		// Task is not planned for any specific hour:
 		time = null;
 	}
-    
+	
 	return time;
 }
 
@@ -228,14 +238,14 @@ function calculateDuration(task, priorTask, taskIndex){
 }
 
 function searchDuration(taskName){
-	// Pattern: \number\, in case of more than one, get the last:
-	var pattern = /\\[0-9]+\\/g;
+	// Pattern: $number, in case of more than one, get the last:
+	var pattern = /\$[0-9]+/g;
 	var result = taskName.match(pattern);
 	if (result != null){
 		if (result.length > 0){
 			result = result[result.length - 1];
 		}
-		result = result.replaceAll("\\", "");
+		result = result.replaceAll("$", "");
 	}
 	return result;
 }
@@ -247,7 +257,7 @@ function calculateBeginTime(dueDate, durationInMinutes){
 
 	if (dueDate != null && durationInMinutes != null){
 		var taskBegin = new Date("01/01/2020 " + dueDate);
-	    taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
+		taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
 		var taskBeginHour = taskBegin.getHours();
 		if (taskBeginHour < 10){
 			taskBeginHour = "0" + taskBeginHour.toString();
@@ -265,7 +275,7 @@ function calculateBeginTime(dueDate, durationInMinutes){
 	} else {
 		return null;
 	}
-    
+	
 	return taskBeginTime;
 }
 
@@ -276,7 +286,6 @@ function setTasksDurations(sortedTasks){
 		if (durationInName != null){
 			sortedTasks[i]["todayist_duration"] = durationInName;
 		} else {
-			// TODO: Calculate duration
 			if (i == 0){
 				sortedTasks[i]["todayist_duration"] = calculateDuration(sortedTasks[i], null, i);
 				sortedTasks[i]["todayist_begin_time"] = calculateBeginTime(sortedTasks[i]["todayist_due_time"], sortedTasks[i]["todayist_duration"]);
@@ -301,9 +310,9 @@ function calculateTimeDifference(beginTime, referenceTime){
 	(taskBeginDate - referenceDate) / MS_PER_MINUTE;
 	
 	var taskBeginDate = new Date("01/01/2020 " + beginTime);
-    var referenceDate = new Date("01/01/2020 " + referenceTime);
-    var timeDifference = (taskBeginDate - referenceDate) / MS_PER_MINUTE;
-    
+	var referenceDate = new Date("01/01/2020 " + referenceTime);
+	var timeDifference = (taskBeginDate - referenceDate) / MS_PER_MINUTE;
+	
 	return timeDifference;
 }
 
@@ -512,7 +521,7 @@ function splitGraphData(data, allTasks){
 
 }
 
-function getData(token){
+function getData(token, time){
 
 	var data = [];
 
@@ -560,11 +569,11 @@ function getData(token){
 			console.log(sortedTasks);
 				
 		}).catch(function(data) {
-			swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
+			showError("Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!");
 		});
 
 	}).catch(function(data) {
-		swal("Ups! 🙈", "Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!", "error");
+		showError("Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!");
 	});
 
 	*/
@@ -609,26 +618,98 @@ function getTasks(token){
 }
 
 function checkSession(){
+	if (!$.cookie(Todayist.cookieName)) {
+		$('#background').delay(500).fadeIn();
+		$('#modal-setup').delay(500).fadeIn();
+		$('#time').bootstrapMaterialDatePicker({ date: false, shortTime: false, format: 'HH:mm' });
+		mockData();
+	}
+}
 
-	$('#background').delay(500).fadeIn();
-	$('#modal-setup').delay(500).fadeIn();
-	$('#time').bootstrapMaterialDatePicker({ date: false, shortTime: false, format: 'HH:mm' });
+function showError(msg) {
+	swal("Ups! 🙈", msg, "error");
+}
+
+function showSuccess(msg) {
+	swal("Yay! 😄", msg, "success");
+}
+
+function showConfirm(msg, okTxt, cancelTxt, okFunction, cancelFunction){
+	swal({
+		title: "Are you sure?",
+		text: msg,
+		icon: "warning",
+		buttons: [
+	    	cancelTxt,
+	    	okTxt
+	    ],
+	}).then(function(isConfirm) {
+      if (isConfirm) {
+      		okFunction();
+		} else {
+			cancelFunction();
+		}
+	});
+}
+
+function deleteCookies(){
+	document.cookie = Todayist.cookieName + '=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
+	showSuccess(Todayist.cookiesDeletedString);
+}
+
+function saveSettings(token, time){
 
 }
 
-// ** ENTRY POINT: ** //
+function updateUI(token, time){
+	//getData(token, time);
+}
 
-var token = "1a36056aa851fe8266a5bcd5a8a51075b8e2ce79";
+function mockData(){
+	var token = "1a36056aa851fe8266a5bcd5a8a51075b8e2ce79";
+	getData(token);
+}
 
-getData(token);
+// ** JQUERY EVENTS: ** //
 
-checkSession();
+$('#delete-cookies').click(function(){
+	if ($.cookie(Todayist.cookieName)) {
+		showConfirm(Todayist.confirmCookieCleaningString, "Ok", "Cancel", deleteCookies, function(){});
+	} else {
+		showError(Todayist.noCookiesToCleanString);
+	}
+});
 
-//var graphData = generateData();
+$('#save-settings').click(function(){
+	if ($('#token').val().length > 0 && $('#time').val().length > 0){
+		var token = $('#token').val().trim();
+		var time = $('#time').val().trim();
+		saveSettings(token, time);
+		updateUI(token, time);
 
+		$('#background').fadeOut();
+		$("#modal-setup").fadeOut();
+	} else {
+		showError(Todayist.missingSettings);
+	}
+});
+
+$('#settings').click(function(){
+	$('#background').fadeIn();
+	$("#modal-setup").fadeIn();
+});
+
+$("#modal-setup .close").click(function() {
+	$('#background').fadeOut();
+	$("#modal-setup").fadeOut();
+});
 
 $("#close-modal-setup").click(function() {
 	$('#background').fadeOut();
 	$("#modal-setup").fadeOut();
 });
 
+
+// ** ENTRY POINT: ** //
+
+checkSession();

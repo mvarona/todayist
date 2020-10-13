@@ -25,6 +25,14 @@ h2.day-moment {
 	color: white;
 }
 
+.page-header h1 {
+	margin-left: 9%;
+}
+
+.page-header a {
+	color: white!important;
+}
+
 .card-background {
 	position: absolute;
 	width: 100%;
@@ -96,8 +104,24 @@ h2.day-moment {
 	z-index: 150;
 }
 
+.dtp-header {
+	background-color: rgba(22,152,172,0.6)!important;
+}
+
+.dtp div.dtp-time {
+	background-color: rgba(22,152,172,0.7)!important;	
+}
+
+line {
+	stroke: rgba(22,152,172,0.7)!important;
+}
+
 .space {
 	height: 10vw;
+}
+
+footer .social-media {
+	padding-left: 8%;
 }
 
 footer {
