@@ -67,7 +67,7 @@ h2.day-moment {
 	position: relative;
 	margin: auto;
 	height: 28rem;
-	width: 28rem;
+	width: 100%;
 }
 
 .chart-legend {
@@ -139,4 +139,46 @@ footer a.ic:hover {
 
 footer .footer-copyright a {
 	color: #ddd!important;
+}
+
+@media only screen and (max-width: 1200px) {
+	.card-body {
+		background-position: 50% 4rem;
+		background-size: 22rem;
+	}
+}
+
+@media only screen and (max-width: 1150px) {
+	.card-body {
+		background-position: 50% 6rem;
+		background-size: 18rem;
+	}
+}
+
+@media only screen and (max-width: 1000px) {
+	.card-body {
+		background-position: 50% 8rem;
+		background-size: 14rem;
+	}
+}
+
+@media only screen and (max-width: 765px) {
+	.card-body {
+		background-position: 50% 4rem;
+		background-size: 22rem;
+	}
+}
+
+@media only screen and (max-width: 500px) {
+	.card-body {
+		background-position: 50% 6rem;
+		background-size: 18rem;
+	}
+}
+
+@media only screen and (max-width: 400px) {
+	.card-body {
+		background-position: 50% 8rem;
+		background-size: 14rem;
+	}
 }
