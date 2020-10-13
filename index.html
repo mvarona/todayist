@@ -1,48 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Todayist - A natural 12-hours-clock to visualize all your today tasks from Todoist!</title>
-    <meta charset="utf-8">
-    <meta lan="en">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha512-s+xg36jbIujB2S2VKfpGmlC3T5V2TF3lY48DX7u2r9XzGzgPsa6wTpOQA7J9iffvdeBN0q9tKzRxVxw1JviZPg==" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+	<title>Todayist - A natural 12-hours-clock to visualize all your today tasks from Todoist!</title>
+	<meta charset="utf-8">
+	<meta lan="en">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha512-s+xg36jbIujB2S2VKfpGmlC3T5V2TF3lY48DX7u2r9XzGzgPsa6wTpOQA7J9iffvdeBN0q9tKzRxVxw1JviZPg==" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="font/stylesheet.css">
+	<script src="https://kit.fontawesome.com/d439a7c845.js" crossorigin="anonymous"></script>
 </head>
 <body>
-   <div class="row mx-auto mt-3">
-        <div class="col-12">
-            <header>    
-            <h1 class="text-center">Todayist</h1>
-            <h2 class="text-center">A natural 12-hours-clock to visualize all your today tasks from Todoist!</h2>
-            </header>
-        </div>
-    </div>
-    <div class="row w-100 mt-5">
-        <div class="col-md-5 mx-auto">
-            <div class="card clock">
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="graph-day"></canvas>
-                    </div>
-                    <div id="graph-day-leyend" class="chart-legend"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-5 mx-auto">
-            <div class="card clock">
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="graph-night"></canvas>
-                    </div>
-                    <div id="graph-night-leyend" class="chart-legend"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div id="background"></div>
+   	<div class="row mx-auto pt-3 pb-2 page-header bg-dark">
+		<div class="col-12">
+			<header>    
+			<h1 class="text-center">Todayist</h1>
+			<h2 class="text-center">A natural 12-hours-clock to visualize all your today tasks from Todoist!</h2>
+			</header>
+		</div>
+	</div>
+	<div class="row w-100 mt-5">
+		<div class="col-md-6 w-100 mx-auto">
+			<h2 class="w-100 text-center day-moment">Before noon</h2>
+		</div>
+		<div class="col-md-6 w-100 mx-auto">
+			<h2 class="w-100 text-center day-moment">After noon</h2>
+		</div>
+	</div>
+	<div class="row w-100 mt-3">
+		<div class="col-md-5 mx-auto">
+			<div class="card clock">
+				<div class="card-background sun"></div>
+				<div class="card-body">
+					<div class="chart-container">
+						<canvas id="graph-day"></canvas>
+					</div>
+					<div id="graph-day-leyend" class="chart-legend"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-5 mx-auto">
+			<div class="card clock">
+				<div class="card-background night"></div>
+				<div class="card-body">
+					<div class="chart-container">
+						<canvas id="graph-night"></canvas>
+					</div>
+					<div id="graph-night-leyend" class="chart-legend"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row w-100 space"></div>
+	<div class="modal" id="modal-setup" tabindex="-1" role="dialog">
+	  <div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+		  </div>
+		  <div class="modal-body">
+			...
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary">Save changes</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	<footer class="page-footer font-small bg-dark">
+		<div class="container">
+			<div class="row col-md-12">
+				<div class="col-md-12 mx-auto pt-4">
+					<div class="col-md-1 mr-md-1 mr-1 d-inline-block mx-auto"></div>
+					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
+						<a class="fb-ic ic">
+							<i class="fab fa-facebook-f fa-lg white-text fa-2x"> </i>
+						</a>
+					</div>
+					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
+						<a class="tw-ic ic">
+							<i class="fab fa-twitter fa-lg white-text fa-2x"> </i>
+						</a>
+					</div>
+					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
+						<a class="li-ic ic">
+							<i class="fab fa-linkedin-in fa-lg white-text fa-2x"> </i>
+						</a>
+					</div>
+					<div class="col-md-2 mr-md-2 mr-2 d-inline-block mx-auto">
+						<a class="ins-ic ic">
+							<i class="fab fa-instagram fa-lg white-text fa-2x"> </i>
+						</a>
+					</div>
+					<div class="col-md-2 d-inline-block mx-auto">
+						<a class="pin-ic ic">
+							<i class="fab fa-pinterest fa-lg white-text fa-2x"> </i>
+						</a>
+					</div>				  
+				</div>
+			</div>
+		</div>
+		<div class="footer-copyright text-center py-3">
+			<span>Sky photos by @jcomp - <a href="https://www.freepik.es/fotos/jcomp" target="_blank">www.freepik.es</a><br/>
+			<span>© 2020 All rights reserved - Coded by <a target="_blank" href="https://github.com/mvarona">Mario Varona</a></span><br/>
+			<span>None Todoist data is sent, check our <a target="_blank" href="TODO:LINK">Privacy Policy</a> - <a href="#">Delete cookies</a></span><br/>
+			<span>Not created by, affiliated with, or supported by Doist, the team behind the best productivity app, Todoist.</span>
+		</div>
+	</footer>
 <script type="text/javascript" src="main.js"></script>
 </body>
 </html>

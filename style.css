@@ -1,13 +1,57 @@
 html, body {
 	margin: 0;
 	padding: 0;
+	z-index: 10;
 }
 
-.card.clock {
-	background-image: url("clock.png");
+body {
+	background-position: 100%;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	/*background-image: url("images/starfield_stock_1.jpg");*/
+	font-family: 'hk_grotesklight', 'Helvetica-Neue', 'Helvetica', Arial, sans-serif;
+	font-weight: 500;
+}
+
+h1 {
+	font-weight: 700;
+}
+
+h2.day-moment {
+	font-weight: 600;
+}
+
+.page-header {
+	color: white;
+}
+
+.card-background {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-position: 100%;
+	background-size: 100rem;
+	background-repeat: no-repeat;
+}
+
+.card-background.sun {
+	background-image: url("images/sun.jpg");
+}
+
+.card-background.night {
+	background-image: url("images/night.jpg");
+}
+
+.card-body {
+	z-index: 100;
+	background-image: url("images/clock.png");
 	background-position: 50% 3rem;
 	background-size: 23rem;
 	background-repeat: no-repeat;
+	background-color: rgba(255,255,255,.7);
+}
+
+.card.clock {
 	height: 40rem;
 }
 
@@ -35,4 +79,40 @@ html, body {
     width: 12px;
     height: 12px;
     margin-right: 5px;
+}
+
+#background {
+	display: none;
+	background-color: rgba(20,23,25, .8);
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	z-index: 50;
+	top: 0;
+	left: 0;
+}
+
+#modal-setup {
+	z-index: 100;
+}
+
+.space {
+	height: 10vw;
+}
+
+footer {
+	color: #aaa!important;
+}
+
+footer a.ic {
+	color: white!important;
+	cursor: pointer;
+}
+
+footer a.ic:hover {
+	color: #aaa!important;
+}
+
+footer .footer-copyright a {
+	color: #ddd!important;
 }

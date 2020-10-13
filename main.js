@@ -608,11 +608,20 @@ function getTasks(token){
 	});
 }
 
+function checkSession(){
+
+	$('#background').fadeIn();
+	$('#modal-setup').fadeIn();
+
+}
+
 // ** ENTRY POINT: ** //
 
 var token = "1a36056aa851fe8266a5bcd5a8a51075b8e2ce79";
 
 getData(token);
+
+checkSession();
 
 //var graphData = generateData();
 
