@@ -670,6 +670,10 @@ function mockData(){
 	getData(token);
 }
 
+function loadUI(){
+	$('.current-year').html(new Date().getFullYear());
+}
+
 // ** JQUERY EVENTS: ** //
 
 $('#delete-cookies').click(function(){
@@ -712,4 +716,5 @@ $("#close-modal-setup").click(function() {
 
 // ** ENTRY POINT: ** //
 
+loadUI();
 checkSession();
