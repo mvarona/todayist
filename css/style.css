@@ -8,7 +8,7 @@ body {
 	background-position: 100%;
 	background-size: 100%;
 	background-repeat: no-repeat;
-	/*background-image: url("images/starfield_stock_1.jpg");*/
+	/*background-image: url("../images/starfield_stock_1.jpg");*/
 	font-family: 'hk_grotesklight', 'Helvetica-Neue', 'Helvetica', Arial, sans-serif;
 	font-weight: 500;
 }
@@ -43,16 +43,16 @@ h2.day-moment {
 }
 
 .card-background.sun {
-	background-image: url("images/sun.jpg");
+	background-image: url("../images/sun.jpg");
 }
 
 .card-background.night {
-	background-image: url("images/night.jpg");
+	background-image: url("../images/night.jpg");
 }
 
 .card-body {
 	z-index: 100;
-	background-image: url("images/clock.png");
+	background-image: url("../images/clock.png");
 	background-position: 50% 3rem;
 	background-size: 23rem;
 	background-repeat: no-repeat;
