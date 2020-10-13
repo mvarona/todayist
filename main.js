@@ -610,8 +610,9 @@ function getTasks(token){
 
 function checkSession(){
 
-	$('#background').fadeIn();
-	$('#modal-setup').fadeIn();
+	$('#background').delay(500).fadeIn();
+	$('#modal-setup').delay(500).fadeIn();
+	$('#time').bootstrapMaterialDatePicker({ date: false, shortTime: false, format: 'HH:mm' });
 
 }
 
@@ -626,6 +627,8 @@ checkSession();
 //var graphData = generateData();
 
 
-
-
+$("#close-modal-setup").click(function() {
+	$('#background').fadeOut();
+	$("#modal-setup").fadeOut();
+});
 

@@ -12,11 +12,15 @@
 	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="font/stylesheet.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="bootstrap-material-datetimepicker.css" rel="stylesheet">
 	<script src="https://kit.fontawesome.com/d439a7c845.js" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
+	<script src="bootstrap-material-datetimepicker.js"></script>
 </head>
 <body>
 	<div id="background"></div>
-   	<div class="row mx-auto pt-3 pb-2 page-header bg-dark">
+	<div class="row mx-auto pt-3 pb-2 page-header bg-dark">
 		<div class="col-12">
 			<header>    
 			<h1 class="text-center">Todayist</h1>
@@ -61,16 +65,29 @@
 	  <div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 		  <div class="modal-header">
-			<h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+			<h5 class="modal-title" id="exampleModalLongTitle">Settings</h5>
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 			  <span aria-hidden="true">&times;</span>
 			</button>
 		  </div>
 		  <div class="modal-body">
-			...
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text" id="token-label">Todoist API token</span>
+			  	</div>
+			  	<input type="text" class="form-control" id="token" aria-label="Todoist token" aria-describedby="token-label">
+			  	<span class="hint mt-2">Your Todoist API token can be found in Todoist Settings under the <a href="https://todoist.com/Users/viewPrefs?page=integrations" target="_blank" rel="noopener noreferrer">Integrations menu</a>. This API token, as well as any Todoist data, is only stored locally on your computer and is never sent to Todayist.</span>
+			  	<div class="input-group-prepend mt-3">
+					<span class="input-group-text" id="time-label">Hour to start the day</span>
+			  	</div>			  	
+			  	<input type="text" class="form-control mt-3" id="time" aria-label="Hour to start the day" aria-describedby="time-label">
+			  	<span class="hint mt-2">Your hour to start the day is used to set the first task in case its duration is not specified.</span>
+			  	<span class="hint mt-2">You can specify the estimated duration for its task by appending <kbd>$minutes</kbd> to its name on Todoist. For example, <kbd>Do Pushups 18:00 $30 #Fitness</kbd> is a task that will appear on the after-noon graph from 18:00 to 18:30.</span>
+			  	<span class="hint mt-2">Todayist only picks the tasks that you have for Today, excluding the overdue and the ones without due time.</span>
+			</div>
 		  </div>
 		  <div class="modal-footer">
-			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button id="close-modal-setup" type="button" class="btn btn-secondary mr-4" data-dismiss="modal">Close</button>
 			<button type="button" class="btn btn-primary">Save changes</button>
 		  </div>
 		</div>
