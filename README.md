@@ -1,6 +1,6 @@
 <img src="images/logo.png" alt="Todayist logo" width="100"/>
 
-# <a target="_blank" href="https://www.todayist.github.io">todayist.github.io</a>
+# <a target="_blank" href="https://mvarona.github.io/todayist/">mvarona.github.io/todayist/</a>
 
 * * *
 
