@@ -1,23 +1,19 @@
 // ** GLOBALS: ** //
 
 var Todayist = {}; // Namespace for variables and default values
+var TodayistCookieData = {}; // Namespace for variables and custom values, stored on cookies
 
 Todayist.cookieName = "todayist_cookie";
 Todayist.noCookiesToCleanString = "There aren't cookies to clean, reload the page to create them again";
 Todayist.confirmCookieCleaningString = "Are you sure that you want to delete the cookies only for this page? That will restore all your data, and you will have to add the Todoist API token again. This action cannot be undone";
 Todayist.cookiesDeletedString = "Cookies successfully deleted";
 Todayist.missingSettings = "Some fields are missing";
+Todayist.mockDate = "01/01/2020 ";
+Todayist.infinite = Infinity;
+TodayistCookieData.cookieToken = "";
+TodayistCookieData.cookieBeginDayTime = "08:00";
 
 // ** FUNCTIONS: ** //
-
-function getRandomColor() {
-	var letters = '0123456789ABCDEF';
-	var color = '#';
-	for (var i = 0; i < 6; i++) {
-		color += letters[Math.floor(Math.random() * 16)];
-	}
-	return color;
-}
 
 function containsObject(obj, list) {
 	var i;
@@ -27,18 +23,6 @@ function containsObject(obj, list) {
 		}
 	}
 	return false;
-}
-
-function generateColors(limit){
-	var colors = [];
-	for (var i = 0; i < limit; i++) {
-		var color = getRandomColor();
-		if (!containsObject(color, colors)){
-			colors.push(color);
-		}
-	}
-
-	return colors;
 }
 
 function generateGraph(graphID, data){
@@ -96,8 +80,8 @@ function getRandomColorSimilarTo(color) {
 	while (p < color.length) {
 		// We displace each color component with a random value:
 		temp = parseInt(color.slice(p, p += 2), 16)
-		// We se random^2 to maximaze the distance between previous colors:
-		temp += Math.floor((255 - temp) * random);
+		temp += Math.floor((255 - temp) * random*0.5);
+		
 		result += temp.toString(16).padStart(2, '0');
 	}
 	return result;
@@ -160,10 +144,10 @@ function compareDueDateTasks(a, b) {
 		return 0;
 	}
 
-	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) < Date.parse('01/01/2020 ' + b["todayist_due_time"])){
+	if (Date.parse(Todayist.mockDate + a["todayist_due_time"]) < Date.parse(Todayist.mockDate + b["todayist_due_time"])){
 		return -1;
 	}
-	if (Date.parse('01/01/2020 ' + a["todayist_due_time"]) > Date.parse('01/01/2020 ' + b["todayist_due_time"])){
+	if (Date.parse(Todayist.mockDate + a["todayist_due_time"]) > Date.parse(Todayist.mockDate + b["todayist_due_time"])){
 		return 1;
 	}
 	return 0;
@@ -216,19 +200,19 @@ function sortTasks(tasks){
 
 function calculateDuration(task, priorTask, taskIndex){
 
-	var beginDayTime = new Date('01/01/2020 00:00:00');
+	var beginDayTime = new Date(Todayist.mockDate + TodayistCookieData.cookieBeginDayTime);
 	var durationMinutes = 0;
 
 	if (taskIndex == 0){
 		if (task["todayist_due_time"] != null){
-			var date = new Date('01/01/2020 ' + task["todayist_due_time"]);
+			var date = new Date(Todayist.mockDate + task["todayist_due_time"]);
 			var difference = Math.abs(date - beginDayTime);
 			durationMinutes = difference / 1000 / 60;
 		}
 	} else {
 		if (task["todayist_due_time"] != null){
-			var priorDate = new Date('01/01/2020 ' + priorTask["todayist_due_time"]);
-			var date = new Date('01/01/2020 ' + task["todayist_due_time"]);
+			var priorDate = new Date(Todayist.mockDate + priorTask["todayist_due_time"]);
+			var date = new Date(Todayist.mockDate + task["todayist_due_time"]);
 			var difference = Math.abs(date - priorDate);
 			durationMinutes = difference / 1000 / 60;
 		}
@@ -256,7 +240,7 @@ function calculateBeginTime(dueDate, durationInMinutes){
 	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
 
 	if (dueDate != null && durationInMinutes != null){
-		var taskBegin = new Date("01/01/2020 " + dueDate);
+		var taskBegin = new Date(Todayist.mockDate + dueDate);
 		taskBegin = new Date(taskBegin - durationInMinutes * MS_PER_MINUTE);
 		var taskBeginHour = taskBegin.getHours();
 		if (taskBeginHour < 10){
@@ -309,8 +293,8 @@ function calculateTimeDifference(beginTime, referenceTime){
 	var MINS_PER_HOUR = 60;
 	(taskBeginDate - referenceDate) / MS_PER_MINUTE;
 	
-	var taskBeginDate = new Date("01/01/2020 " + beginTime);
-	var referenceDate = new Date("01/01/2020 " + referenceTime);
+	var taskBeginDate = new Date(Todayist.mockDate + beginTime);
+	var referenceDate = new Date(Todayist.mockDate + referenceTime);
 	var timeDifference = (taskBeginDate - referenceDate) / MS_PER_MINUTE;
 	
 	return timeDifference;
@@ -321,7 +305,6 @@ function generateGraphSegments(sortedTasks){
 	var taskColors = [];
 	var taskDurations = [];
 	var graphData = {};
-	var beginDay = new Date("01/01/2020 00:00:00");
 	var sortedPlannedTasks = [];
 
 	for (var i = 0; i < sortedTasks.length; i++){
@@ -342,8 +325,11 @@ function generateGraphSegments(sortedTasks){
 				// First task:
 
 				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_begin_time"], "00:00:00");
-				
+
 				if (taskDuration > 0){
+
+					// There is time difference, therefore we need to add a Free segment, and then respective task:
+
 					taskName = "Free";
 					taskColor = "#eeeeee";
 
@@ -375,6 +361,9 @@ function generateGraphSegments(sortedTasks){
 				taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_begin_time"], sortedPlannedTasks[i - 1]["todayist_due_time"]);
 				
 				if (taskDuration > 0){
+
+					// There is time difference, therefore we need to add a Free segment, and then respective task:
+
 					taskName = "Free";
 					taskColor = "#eeeeee";
 
@@ -406,6 +395,8 @@ function generateGraphSegments(sortedTasks){
 			// Last task:
 			taskDuration = calculateTimeDifference(sortedPlannedTasks[i]["todayist_begin_time"], "23:59:59");
 				
+			// There is time difference, therefore we need to add a Free segment, and then respective task:
+
 			if (taskDuration > 0){
 				taskName = "Free";
 				taskColor = "#eeeeee";
@@ -470,38 +461,56 @@ function splitGraphData(data, allTasks){
 	var splittedGraphData = {};
 	var dayObject = {};
 	var nightObject = {};
-	var limitDayDate = new Date("01/01/2020 12:00:00");
+	var limitDayDate = new Date(Todayist.mockDate + "12:00:00"); // Noon time
 	var SECS_PER_MINUTE = 60;
 	var MS_PER_MINUTE = SECS_PER_MINUTE * 1000;
+	var indexTaskSplitted = Todayist.infinite;
 
 	for (var i = 0; i < data["taskNames"].length; i++){
-		var taskDueDate = new Date("01/01/2020 " + getDueTimeForTask(data["taskNames"][i], allTasks));
-		var taskBeginDate = new Date("01/01/2020 " + getBeginTimeForTask(data["taskNames"][i], allTasks));
-		
-		if (taskBeginDate < limitDayDate && taskDueDate <= limitDayDate){
-			// Task is during day:
-			taskNamesDay.push(data["taskNames"][i]);
-			taskColorsDay.push(data["taskColors"][i]);
-			taskDurationsDay.push(data["taskDurations"][i]);
 
-		} else if (taskBeginDate >= limitDayDate){
-			// Task is during night:
-			taskNamesNight.push(data["taskNames"][i]);
-			taskColorsNight.push(data["taskColors"][i]);
-			taskDurationsNight.push(data["taskDurations"][i]);
-		
-		} else if (taskBeginDate < limitDayDate && taskDueDate > limitDayDate){
-			// Task starts during day and ends during night (split task):
+		if (data["taskNames"][i] === "Free"){
+			// The Free tasks are not in Todoist, so they don't have due or calculated begin time:
+			if (i < indexTaskSplitted){
+				taskNamesDay.push(data["taskNames"][i]);
+				taskColorsDay.push(data["taskColors"][i]);
+				taskDurationsDay.push(data["taskDurations"][i]);
+			} else {
+				taskNamesNight.push(data["taskNames"][i]);
+				taskColorsNight.push(data["taskColors"][i]);
+				taskDurationsNight.push(data["taskDurations"][i]);
+			}
 
-			var minutesDay = (limitDayDate - taskBeginDate) / MS_PER_MINUTE;
+		} else {
+			var taskDueDate = new Date(Todayist.mockDate + getDueTimeForTask(data["taskNames"][i], allTasks));
+			var taskBeginDate = new Date(Todayist.mockDate + getBeginTimeForTask(data["taskNames"][i], allTasks));
 			
-			taskNamesDay.push(data["taskNames"][i]);
-			taskColorsDay.push(data["taskColors"][i]);
-			taskDurationsDay.push(minutesDay);
+			if (taskBeginDate < limitDayDate && taskDueDate <= limitDayDate){
+				// Task is during day:
+				taskNamesDay.push(data["taskNames"][i]);
+				taskColorsDay.push(data["taskColors"][i]);
+				taskDurationsDay.push(data["taskDurations"][i]);
 
-			taskNamesNight.push(data["taskNames"][i]);
-			taskColorsNight.push(data["taskColors"][i]);
-			taskDurationsNight.push(data["taskDurations"][i] - minutesDay);
+			} else if (taskBeginDate >= limitDayDate){
+				// Task is during night:
+				taskNamesNight.push(data["taskNames"][i]);
+				taskColorsNight.push(data["taskColors"][i]);
+				taskDurationsNight.push(data["taskDurations"][i]);
+			
+			} else if (taskBeginDate < limitDayDate && taskDueDate > limitDayDate){
+				// Task starts during day and ends during night (split task):
+
+				indexTaskSplitted = i;
+
+				var minutesDay = (limitDayDate - taskBeginDate) / MS_PER_MINUTE;
+				
+				taskNamesDay.push(data["taskNames"][i]);
+				taskColorsDay.push(data["taskColors"][i]);
+				taskDurationsDay.push(minutesDay);
+
+				taskNamesNight.push(data["taskNames"][i]);
+				taskColorsNight.push(data["taskColors"][i]);
+				taskDurationsNight.push(data["taskDurations"][i] - minutesDay);
+			}
 		}
 
 	}
@@ -524,8 +533,6 @@ function splitGraphData(data, allTasks){
 function getData(token, time){
 
 	var data = [];
-
-/*
 
 	var projectsPromise = getProjects(token);
 
@@ -567,6 +574,19 @@ function getData(token, time){
 			console.log("SORTED TASKS WITH DURATION");
 			sortedTasks = setTasksDurations(sortedTasks);
 			console.log(sortedTasks);
+
+			var graphData = [];
+
+			console.log(JSON.stringify(sortedTasks));
+
+			graphData = generateGraphSegments(sortedTasks);
+			graphData = splitGraphData(graphData, sortedTasks);	
+
+			console.log("SPLITTED GRAPH DATA")
+			console.log(graphData);
+
+			generateGraph("graph-day", graphData["day"]);
+			generateGraph("graph-night", graphData["night"]);
 				
 		}).catch(function(data) {
 			showError("Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!");
@@ -575,21 +595,6 @@ function getData(token, time){
 	}).catch(function(data) {
 		showError("Something went wrong! Please check if the token you entered is correct. Otherwise, please try again later. If it was our fault we will do our best to fix it!");
 	});
-
-	*/
-
-	var sortedTasks = [{"content":"Clase Legales TA1","due":{"date":"2020-10-12T16:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 16","timezone":null},"id":4220572517,"project_id":664695256,"todayist_color":"#ffe0c2","todayist_due_time":"16:00:00","todayist_begin_time":"11:00:00","todayist_duration":300},{"content":"Teóricas Gestión","due":{"date":"2020-10-12T18:00:00","is_recurring":true,"lang":"es","string":"todos lunes a las 18","timezone":null},"id":4220572528,"project_id":664695256,"todayist_color":"#ffc68e","todayist_due_time":"18:00:00","todayist_begin_time":"16:00:00","todayist_duration":120},{"content":"Merendar","due":{"date":"2020-10-12T19:00:00","is_recurring":true,"lang":"es","string":"todos días a las 19:00","timezone":null},"id":4076720689,"project_id":664695029,"todayist_color":"#6dcdbd","todayist_due_time":"19:00:00","todayist_begin_time":"18:00:00","todayist_duration":60},{"content":"30 minutos pesas","due":{"date":"2020-10-12T19:30:00","is_recurring":true,"lang":"es","string":"todos lunes, miércoles, viernes, domingos 19:30","timezone":null},"id":2799442432,"project_id":664695029,"todayist_color":"#f1faf8","todayist_due_time":"19:30:00","todayist_begin_time":"19:00:00","todayist_duration":30},{"content":"Dedicar 2 horas a ejercicio","due":{"date":"2020-10-12T20:00:00","is_recurring":true,"lang":"es","string":"todos domingos 20:00","timezone":null},"id":2799356737,"project_id":664695029,"todayist_color":"#7fd3c5","todayist_due_time":"20:00:00","todayist_begin_time":"19:30:00","todayist_duration":30},{"content":"Loguear hábitos","due":{"date":"2020-10-12T23:59:00","is_recurring":true,"lang":"es","string":"todos días 23:59","timezone":null},"id":4035761332,"project_id":664695029,"todayist_color":"#77d0c2","todayist_due_time":"23:59:00","todayist_begin_time":"20:00:00","todayist_duration":239},{"content":"Intentar tener mejor postura","due":{"date":"2020-10-12","is_recurring":true,"lang":"es","string":"todos dias","timezone":null},"id":4134069418,"project_id":664695029,"todayist_color":"#caede7","todayist_due_time":null,"todayist_begin_time":null,"todayist_duration":0}];
-
-	var graphData = [];
-
-	graphData = generateGraphSegments(sortedTasks);
-	graphData = splitGraphData(graphData, sortedTasks);	
-
-	console.log("SPLITTED GRAPH DATA")
-	console.log(graphData);
-
-	generateGraph("graph-day", graphData["day"]);
-	generateGraph("graph-night", graphData["night"]);
 
 }
 
@@ -619,10 +624,17 @@ function getTasks(token){
 
 function checkSession(){
 	if (!$.cookie(Todayist.cookieName)) {
+		// No saved data:
 		$('#background').delay(500).fadeIn();
 		$('#modal-setup').delay(500).fadeIn();
 		$('#time').bootstrapMaterialDatePicker({ date: false, shortTime: false, format: 'HH:mm' });
 		mockData();
+
+	} else {
+		// Saved data:
+		TodayistCookieData = JSON.parse($.cookie(Todayist.cookieName));
+	    getData(TodayistCookieData.cookieToken, TodayistCookieData.beginTime);
+	    loadSettings();
 	}
 }
 
@@ -657,17 +669,31 @@ function deleteCookies(){
 	showSuccess(Todayist.cookiesDeletedString);
 }
 
-function saveSettings(token, time){
+function loadSettings(){
+	$('#token').val(TodayistCookieData.cookieToken);
+	$('#time').val(TodayistCookieData.cookieBeginDayTime);
+}
 
+function saveSettings(token, time){
+	TodayistCookieData.cookieToken = token;
+	TodayistCookieData.cookieBeginDayTime = time; 
+	$.cookie(Todayist.cookieName, JSON.stringify(TodayistCookieData));
 }
 
 function updateUI(token, time){
-	//getData(token, time);
+	getData(token, time);
 }
 
 function mockData(){
-	var token = "1a36056aa851fe8266a5bcd5a8a51075b8e2ce79";
-	getData(token);
+	var sampleTasks = [{"content":"Prepare licence","due":{"date":"2020-10-14T09:00:00","timezone":null},"todayist_color":"#fad726","todayist_due_time":"09:00:00","todayist_duration":60,"todayist_begin_time":"08:00:00"},{"content":"Manage explicit consent","date_added":"2020-10-09T14:58:09Z","due":{"date":"2020-10-14T13:00:00","timezone":null},"todayist_color":"#fbe000","todayist_due_time":"13:00:00","todayist_duration":240,"todayist_begin_time":"09:00:00"},{"content":"Integrate analytics","date_added":"2020-10-09T14:58:17Z","due":{"date":"2020-10-14T14:00:00","timezone":null},"todayist_color":"#fce575","todayist_due_time":"14:00:00","todayist_duration":60,"todayist_begin_time":"13:00:00"},{"content":"Rewrite Readme","date_added":"2020-10-13T22:25:47Z","due":{"date":"2020-10-14T15:00:00","timezone":null},"todayist_color":"#fbdd4b","todayist_due_time":"15:00:00","todayist_duration":60,"todayist_begin_time":"14:00:00"},{"content":"Lesson Legal Aspects","date_added":"2020-10-01T13:47:38Z","due":{"date":"2020-10-14T16:00:00","timezone":null},"todayist_color":"#ff9a36","todayist_due_time":"16:00:00","todayist_duration":60,"todayist_begin_time":"15:00:00"},{"content":"Ask Niko about allowance","due":{"date":"2020-10-14T17:00:00","timezone":null},"todayist_color":"#c1c1c1","todayist_due_time":"17:00:00","todayist_duration":60,"todayist_begin_time":"16:00:00"},{"content":"Lesson Business Management","due":{"date":"2020-10-14T18:00:00","timezone":null},"todayist_color":"#ffa851","todayist_due_time":"18:00:00","todayist_duration":60,"todayist_begin_time":"17:00:00"},{"content":"Prepare dinner","due":{"date":"2020-10-14T19:00:00","timezone":null},"todayist_color":"#6cccbc","todayist_due_time":"19:00:00","todayist_duration":60,"todayist_begin_time":"18:00:00"},{"content":"Pushups 30 minutes","due":{"date":"2020-10-14T19:30:00","timezone":null},"todayist_color":"#a1ded4","todayist_due_time":"19:30:00","todayist_duration":30,"todayist_begin_time":"19:00:00"},{"content":"Log habits","due":{"date":"2020-10-14T23:59:00","timezone":null},"todayist_color":"#a0ddaa","todayist_due_time":"23:59:00","todayist_duration":269,"todayist_begin_time":"19:30:00"},{"content":"Improve posture","due":{"date":"2020-10-14","timezone":null},"todayist_color":"#6accbc","todayist_due_time":null,"todayist_duration":0,"todayist_begin_time":null},{"content":"Prepare tee","due":{"date":"2020-10-14","timezone":null},"todayist_color":"#8bd7ca","todayist_due_time":null,"todayist_duration":0,"todayist_begin_time":null},{"content":"Listen to Kevin","due":{"date":"2020-10-14","timezone":null},"todayist_color":"#eda0ed","todayist_due_time":null,"todayist_duration":0,"todayist_begin_time":null},{"content":"Reply Kevin","due":{"date":"2020-10-14","timezone":null},"todayist_color":"#f0b1f0","todayist_due_time":null,"todayist_duration":0,"todayist_begin_time":null}];
+
+	sampleTasks = setTasksDurations(sampleTasks);
+
+	graphData = generateGraphSegments(sampleTasks);
+	graphData = splitGraphData(graphData, sampleTasks);
+
+	generateGraph("graph-day", graphData["day"]);
+	generateGraph("graph-night", graphData["night"]);	
 }
 
 function loadUI(){
