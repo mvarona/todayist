@@ -25,7 +25,7 @@ function containsObject(obj, list) {
 	return false;
 }
 
-function generateGraph(graphID, data){
+function generateGraph(graphID, data, clearData = false){
 	var donutOptions = {
 	  cutoutPercentage: 85, 
 	  legend:{ display:false },
@@ -34,31 +34,39 @@ function generateGraph(graphID, data){
 	};
 
 	var sumDurations = 0;
+	var graphData;
 
-	for (var i = 0; i < data["taskDurations"].length; i++){
-		sumDurations += data["taskDurations"];
+	if (!clearData) {
+		for (var i = 0; i < data["taskDurations"].length; i++){
+			sumDurations += data["taskDurations"];
+		}
+
+		if (sumDurations < 720){
+			data["taskNames"].unshift("Free");
+			data["taskColors"].unshift("#eeeeee");
+			data["taskDurations"].unshift(720 - sumDurations);
+		}
+
+		if (data["taskNames"].length == 0){
+			data["taskNames"].push("Free");
+			data["taskColors"].push("#eeeeee");
+			data["taskDurations"].push(720);
+		}
+
+			graphData = {
+			labels: data["taskNames"],
+			datasets: [{
+				backgroundColor: data["taskColors"],
+				borderWidth: 0,
+				data: data["taskDurations"]
+			}]
+		};
 	}
 
-	if (sumDurations < 720){
-		data["taskNames"].unshift("Free");
-		data["taskColors"].unshift("#eeeeee");
-		data["taskDurations"].unshift(720 - sumDurations);
+	if (clearData){
+		graphData = [];
+		donutOptions = [];
 	}
-
-	if (data["taskNames"].length == 0){
-		data["taskNames"].push("Free");
-		data["taskColors"].push("#eeeeee");
-		data["taskDurations"].push(720);
-	}
-
-	var graphData = {
-		labels: data["taskNames"],
-		datasets: [{
-			backgroundColor: data["taskColors"],
-			borderWidth: 0,
-			data: data["taskDurations"]
-		}]
-	};
 
 	var graph = document.getElementById(graphID);
 	if (graph) {
@@ -429,9 +437,6 @@ function generateGraphSegments(sortedTasks){
 	graphData["taskColors"] = taskColors;
 	graphData["taskDurations"] = taskDurations;
 
-	console.log("GRAPH DATA");
-	console.log(graphData);
-
 	return graphData;
 }
 
@@ -452,6 +457,7 @@ function getBeginTimeForTask(taskContent, allTasks){
 }
 
 function splitGraphData(data, allTasks){
+
 	var taskNamesDay = [];
 	var taskColorsDay = [];
 	var taskDurationsDay = [];
@@ -534,13 +540,14 @@ function getData(token, time){
 
 	var data = [];
 
+	generateGraph("graph-day", [], clearData = true);
+	generateGraph("graph-night", [], clearData = true);
+
 	var projectsPromise = getProjects(token);
 
 	projectsPromise.then(function(result) {
 		data["projects"] = result["projects"];
-		console.log("PROJECTS");
-		console.log(data["projects"]);
-
+		
 		var todayTasksPromise = getTasks(token);
 
 		todayTasksPromise.then(function(result) {
@@ -558,32 +565,16 @@ function getData(token, time){
 				}
 			}
 
-			console.log("TASKS");
-			console.log(data["tasks"]);
-
 			data["tasks"] = getColors(data["projects"], data["tasks"]);
-
-			console.log("TASKS WITH COLOR");
-			console.log(data["tasks"]);
 
 			sortedTasks = sortTasks(data["tasks"]);
 
-			console.log("SORTED TASKS");
-			console.log(sortedTasks);
-
-			console.log("SORTED TASKS WITH DURATION");
 			sortedTasks = setTasksDurations(sortedTasks);
-			console.log(sortedTasks);
-
+			
 			var graphData = [];
-
-			console.log(JSON.stringify(sortedTasks));
 
 			graphData = generateGraphSegments(sortedTasks);
 			graphData = splitGraphData(graphData, sortedTasks);	
-
-			console.log("SPLITTED GRAPH DATA")
-			console.log(graphData);
 
 			generateGraph("graph-day", graphData["day"]);
 			generateGraph("graph-night", graphData["night"]);
