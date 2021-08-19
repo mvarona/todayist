@@ -547,6 +547,8 @@ function getData(token, time){
 
 	projectsPromise.then(function(result) {
 		data["projects"] = result["projects"];
+		data["user"] = result["user"];
+		user_id = data["user"]["id"];
 		
 		var todayTasksPromise = getTasks(token);
 
@@ -560,7 +562,7 @@ function getData(token, time){
 			today = yyyy + "-" + mm + "-" + dd;
 
 			for (var i = 0; i < result["items"].length; i++){
-				if (result["items"][i]["due"] != null && result["items"][i]["due"]["date"].includes(today)){
+				if (result["items"][i]["due"] != null && result["items"][i]["due"]["date"].includes(today) && (result["items"][i]["responsible_uid"] == null || result["items"][i]["responsible_uid"] == user_id)){
 					data["tasks"].push(result["items"][i]);
 				}
 			}
@@ -596,7 +598,7 @@ function getProjects(token){
 	  data: {
 		'token': token,
 		'sync_token': '*',
-		'resource_types': '["projects"]'
+		'resource_types': '["projects", "user"]'
 	  }
 	});
 }
